@@ -1,21 +1,21 @@
-// server.js
-
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import morgan from 'morgan';
 
-import db from './config/connection.js';
-import usersRouter from './routes/users.js';
-import projectsRouter from './routes/projects.js';
-import tasksRouter from './routes/tasks.js';
+import connectDB from './config/db.js';
+import usersRouter from './routes/userRoutes.js';
+import projectsRouter from './routes/projectRoutes.js';
+import tasksRouter from './routes/taskRoutes.js';
 
 // Load env variables
 dotenv.config();
+connectDB()
 
 // Create Express app
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // Logging
@@ -37,27 +37,36 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.get('/', (req, res) => {
+  res.json('welcome to pro-tasker')
+})
 app.use('/api/users', usersRouter);
 app.use('/api/projects', projectsRouter);
-app.use('/api/projects/:projectId/tasks', tasksRouter);
+app.use('/api/tasks', tasksRouter);
 
 // DB Events
-db.once('open', () => {
-  console.log('✅ Connected to MongoDB');
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running at http://localhost:${PORT}`);
-  });
-});
+// connectDB.once('open', () => {
+//   console.log('✅ Connected to MongoDB');
+//   app.listen(PORT, () => {
+//     console.log(`🚀 Server is running at http://localhost:${PORT}`);
+//   });
+// });
 
-db.on('error', (error) => {
-  console.error('❌ MongoDB error:', error.message);
-  process.exit(1);
-});
+// connectDB.on('error', (error) => {
+//   console.error('❌ MongoDB error:', error.message);
+//   process.exit(1);
+// });
 
-db.on('disconnected', () => {
-  console.log('⚠️ MongoDB disconnected');
-});
+// connectDB.on('disconnected', () => {
+//   console.log('⚠️ MongoDB disconnected');
+// });
+app.listen(PORT, () => {
+
+  console.log(`Server running on port ${PORT}`)
+
+})

@@ -1,18 +1,13 @@
-// controllers/taskController.js
+import Task from '../models/Task.js';
+import Project from '../models/Project.js';
 
-import Task from '../models/taskModel.js';
-import Project from '../models/projectModel.js';
-
-// @desc    Create task in project
-// @route   POST /api/projects/:projectId/tasks
-// @access  Private
 export const createTask = async (req, res) => {
   try {
-    const { title, description, status } = req.body;
-    const { projectId } = req.params;
+    const { project,title, description, status } = req.body;
+    
 
-    const project = await Project.findOne({ _id: projectId, owner: req.user.id });
-    if (!project) {
+    const projectRC = await Project.findOne({ _id: project, owner: req.user._id });
+    if (!projectRC) {
       return res.status(403).json({ message: 'Unauthorized or project not found' });
     }
 
@@ -20,7 +15,7 @@ export const createTask = async (req, res) => {
       title,
       description,
       status,
-      project: projectId,
+      project
     });
 
     const saved = await task.save();
@@ -30,14 +25,12 @@ export const createTask = async (req, res) => {
   }
 };
 
-// @desc    Get tasks for a project
-// @route   GET /api/projects/:projectId/tasks
-// @access  Private
-export const getTasksForProject = async (req, res) => {
+
+export const getTasksByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const project = await Project.findOne({ _id: projectId, owner: req.user.id });
+    const project = await Project.findOne({ _id: projectId, owner: req.user._id });
     if (!project) {
       return res.status(403).json({ message: 'Unauthorized or project not found' });
     }
@@ -54,15 +47,15 @@ export const getTasksForProject = async (req, res) => {
 // @access  Private
 export const updateTask = async (req, res) => {
   try {
-    const { projectId, taskId } = req.params;
+    const { Id } = req.params;
 
-    const project = await Project.findOne({ _id: projectId, owner: req.user.id });
-    if (!project) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
+    // const project = await Project.findOne({ _id: projectId, owner: req.user._id });
+    // if (!project) {
+    //   return res.status(403).json({ message: 'Unauthorized' });
+    // }
 
     const task = await Task.findOneAndUpdate(
-      { _id: taskId, project: projectId },
+      { _id: Id, },
       req.body,
       { new: true }
     );
@@ -77,21 +70,17 @@ export const updateTask = async (req, res) => {
   }
 };
 
-// @desc    Delete task
-// @route   DELETE /api/projects/:projectId/tasks/:taskId
-// @access  Private
 export const deleteTask = async (req, res) => {
   try {
-    const { projectId, taskId } = req.params;
+    const { Id } = req.params;
 
-    const project = await Project.findOne({ _id: projectId, owner: req.user.id });
-    if (!project) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
+    // const project = await Project.findOne({ _id: Id, owner: req.user._id });
+    // if (!project) {
+    //   return res.status(403).json({ message: 'Unauthorized' });
+    // }
 
     const task = await Task.findOneAndDelete({
-      _id: taskId,
-      project: projectId,
+      _id: Id,
     });
 
     if (!task) {

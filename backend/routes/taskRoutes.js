@@ -1,7 +1,6 @@
 import express from 'express';
 import {
   createTask,
-  getTasksByProject,
   updateTask,
   deleteTask,
 } from '../controllers/taskController.js';
@@ -13,9 +12,9 @@ const router = express.Router();
 router.use(protect);
 
 // Tasks are nested under projects
-router.post('/:projectId/tasks', createTask);                   // POST /api/projects/:projectId/tasks
-router.get('/:projectId/tasks', getTasksByProject);             // GET /api/projects/:projectId/tasks
-router.put('/:projectId/tasks/:taskId', updateTask);            // PUT /api/projects/:projectId/tasks/:taskId
-router.delete('/:projectId/tasks/:taskId', deleteTask);         // DELETE /api/projects/:projectId/tasks/:taskId
+
+router.post('/',createTask);                               
+router.put('/:Id',updateTask);            
+router.delete('/:Id',deleteTask);         
 
 export default router;

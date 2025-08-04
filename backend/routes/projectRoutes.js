@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  getProjectTasks,
   createProject,
   getProjects,
   getProjectById,
@@ -21,5 +22,7 @@ router.route('/:id')
   .get(getProjectById)   // GET /api/projects/:id
   .put(updateProject)    // PUT /api/projects/:id
   .delete(deleteProject);// DELETE /api/projects/:id
+
+  router.get('/:id/tasks', getProjectTasks);
 
 export default router;

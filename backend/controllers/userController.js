@@ -1,17 +1,13 @@
-// controllers/userController.js
-
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/userModel.js';
+import User from '../models/User.js';
 
-// @desc    Register a new user
-// @route   POST /api/users/register
-// @access  Public
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
+    
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
@@ -48,54 +44,86 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Authenticate user & get token
-// @route   POST /api/users/login
-// @access  Public
 export const loginUser = async (req, res) => {
+  // const { email, password } = req.body;
+  // const standardEmail = email.toLowerCase().trim()
+  // try {
+   
+  //   // Find user 
+  //   const user = await User.findOne({ email: standardEmail });
+    
+  //       // res.status(200).json({
+  //   //   _id: user._id,
+  //   //   name: user.name,
+  //   //   email: user.email,
+  //   //   token,
+  //   // });
+     
+  //      console.log(user);
+  //  if (user && (await user.matchPassword(password))) {
+  //      res.status(200).json({
+  //       _id: user._id,
+  //       name: user.name,
+  //       email: user.email,
+  //       token,
+  //     })
+
+  //   } else {
+
+  //     return res.status(401).json({ message: 'Invalid email or password' })
+
+  //   }
+
+  // } catch (error) {
+
+  //   return res.status(500).json({ message: error.message })
+
+  // } 
   try {
-    const { email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: req.body.email });
+// console.log(user)
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+
+      return res.status(401).json({ message: "Invalid email or password" });
+
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const correctPw = await user.isCorrectPassword(req.body.password);
+// console.log(correctPw)
+    if (!correctPw) {
+console.log("wrongPw")
+      return res.status(401).json({ message: "Invalid email or password!" });
+
     }
 
-    // Create JWT
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = signToken(user);
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token,
-    });
+    res.status(200).json({ token, user });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error(error);
+
+    res.status(500).json({ message: "Server error. Please try again later" });
+
   }
-};
+}
 
 // @desc    Get current user
 // @route   GET /api/users/me
 // @access  Private
 export const getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+const user = await User.findById(req.params.id).select('-password')
+
+  if (user) {
+
+    res.json(user)
+
+  } else {
+
+    res.status(404).json({ message: 'User not found' })
+
   }
 };
+  

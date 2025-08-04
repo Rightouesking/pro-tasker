@@ -1,10 +1,7 @@
-// controllers/projectController.js
+import Project from '../models/Project.js';
+import User from '../models/User.js';
+import Task from '../models/Task.js'
 
-import Project from '../models/projectModel.js';
-
-// @desc    Create new project
-// @route   POST /api/projects
-// @access  Private
 export const createProject = async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -12,7 +9,7 @@ export const createProject = async (req, res) => {
     const newProject = new Project({
       name,
       description,
-      owner: req.user.id,
+      owner: req.user._id,
     });
 
     const savedProject = await newProject.save();
@@ -22,26 +19,24 @@ export const createProject = async (req, res) => {
   }
 };
 
-// @desc    Get all projects owned by user
-// @route   GET /api/projects
-// @access  Private
-export const getUserProjects = async (req, res) => {
+export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ owner: req.user.id });
+    const projects = await Project.find({ owner: req.user._id });
     res.status(200).json(projects);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Get single project by ID
-// @route   GET /api/projects/:id
-// @access  Private
+
 export const getProjectById = async (req, res) => {
   try {
+    console.log (req.params.id,
+      req.user._id,)
+
     const project = await Project.findOne({
       _id: req.params.id,
-      owner: req.user.id,
+      owner: req.user._id,
     });
 
     if (!project) {
@@ -54,13 +49,11 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// @desc    Update project
-// @route   PUT /api/projects/:id
-// @access  Private
+
 export const updateProject = async (req, res) => {
   try {
     const project = await Project.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.id },
+      { _id: req.params.id, owner: req.user._id },
       req.body,
       { new: true }
     );
@@ -75,14 +68,12 @@ export const updateProject = async (req, res) => {
   }
 };
 
-// @desc    Delete project
-// @route   DELETE /api/projects/:id
-// @access  Private
+
 export const deleteProject = async (req, res) => {
   try {
     const deleted = await Project.findOneAndDelete({
       _id: req.params.id,
-      owner: req.user.id,
+      owner: req.user._id,
     });
 
     if (!deleted) {
@@ -93,4 +84,56 @@ export const deleteProject = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+
 };
+// GET /api/project/:projectId/tasks - Get all tasks for a given project
+
+export async function getProjectTasks(
+
+req ,
+
+res 
+
+) {
+
+try {
+
+const project = await Project.findById(req.params.id);
+
+if (!project || !project.owner)
+
+return res
+
+.status(404)
+
+.json({ message: `No project found for id (${req.params.id}).` });
+
+if (project.owner.toString() !== req.user._id)
+
+return res
+
+.status(403)
+
+.json({ message: 'You are not allowed to access that project.' });
+
+ 
+
+const tasks = await Task.find({ project: project._id });
+
+if (!tasks || tasks.length === 0)
+
+return res.status(400).json({ message: 'No tasks found' });
+
+ 
+
+res.json(tasks);
+
+} catch (err) {
+
+console.log(err);
+
+res.status(500).json(err);
+
+}
+
+}
